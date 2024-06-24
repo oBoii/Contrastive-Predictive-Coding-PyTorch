@@ -32,8 +32,12 @@ def collate_fn(batch):
     # Unzip the batch into separate lists
     waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids = zip(*batch)
 
+    # Randomly select a window within each waveform
+    audio_window = 20480  # Set this to the desired window size
+    waveforms = [wf[torch.randint(wf.size(0) - audio_window + 1, (1,)).item() : audio_window] for wf in waveforms]
+
     # Pad the waveforms and stack them
-    waveforms = pad_sequence([torch.from_numpy(wf) for wf in waveforms], batch_first=True)
+    waveforms = pad_sequence(waveforms, batch_first=True)
 
     # Stack the other attributes. You might need to convert some of them to tensors if they aren't already.
     sample_rates = torch.stack(sample_rates)
