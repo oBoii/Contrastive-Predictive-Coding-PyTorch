@@ -27,21 +27,20 @@ from src.validation_v1 import validation
 from torch.nn.utils.rnn import pad_sequence
 
 
-class LibriDataset(LIBRISPEECH):
-    def __init__(self, *args, **kwargs):
-        super(LibriDataset, self).__init__(*args, **kwargs)
+def __getitem__(self, index):
+    target_utt_len = 20480
+    waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id = super(LIBRISPEECH, self).__getitem__(index)
 
-    def __getitem__(self, index):
-        target_utt_len = 20480
-        waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id = super(LibriDataset, self).__getitem__(
-            index)
-        # set length
-        if waveform.size(0) < target_utt_len:
-            waveform = torch.nn.functional.pad(waveform, (0, target_utt_len - waveform.size(0)))
-        elif waveform.size(0) > target_utt_len:
-            waveform = waveform[:target_utt_len]
+    # If waveform is shorter than target_utt_len, pad it with zeros
+    if waveform.size(0) < target_utt_len:
+        padding = torch.zeros(target_utt_len - waveform.size(0))
+        waveform = torch.cat((waveform, padding))
 
-        return waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id
+    # If waveform is longer than target_utt_len, truncate it
+    elif waveform.size(0) > target_utt_len:
+        waveform = waveform[:target_utt_len]
+
+    return waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id
 
 
 # utt_id = self.utts[index]  # get the utterance id
