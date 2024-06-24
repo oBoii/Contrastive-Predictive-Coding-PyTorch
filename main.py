@@ -34,8 +34,10 @@ def collate_fn(batch):
 
     # Randomly select a window within each waveform
     audio_window = 20480  # Set this to the desired window size
-    waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for wf in waveforms]
-    waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item() : audio_window] if wf.size(0) > audio_window else wf for wf in waveforms]
+    waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for
+                 wf in waveforms]
+    waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item(): audio_window] if wf.size(
+        0) > audio_window else wf for wf in waveforms]
 
     # Find the length of the longest waveform
     max_length = max(wf.size(0) for wf in waveforms)
@@ -51,6 +53,7 @@ def collate_fn(batch):
     utterance_ids = torch.stack(utterance_ids)
 
     return waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids
+
 
 ############ Control Center and Hyperparameter ###############
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
