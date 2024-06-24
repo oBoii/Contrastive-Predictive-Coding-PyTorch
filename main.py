@@ -35,7 +35,7 @@ def collate_fn(batch):
     # Randomly select a window within each waveform
     audio_window = 20480  # Set this to the desired window size
     waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for wf in waveforms]
-    waveforms = [wf[torch.randint(wf.size(0) - audio_window + 1, (1,)).item() : audio_window] for wf in waveforms]
+    waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item() : audio_window] if wf.size(0) > audio_window else wf for wf in waveforms]
 
     # Pad the waveforms and stack them
     waveforms = pad_sequence(waveforms, batch_first=True)
