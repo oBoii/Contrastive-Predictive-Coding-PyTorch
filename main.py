@@ -24,6 +24,26 @@ from torchaudio.datasets import LIBRISPEECH
 from src.training_v1 import train, snapshot
 from src.validation_v1 import validation
 
+from torch.nn.utils.rnn import pad_sequence
+
+
+def collate_fn(batch):
+    # A batch is a list of tuples of (waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id)
+    # Unzip the batch into separate lists
+    waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids = zip(*batch)
+
+    # Pad the waveforms and stack them
+    waveforms = pad_sequence([torch.from_numpy(wf) for wf in waveforms], batch_first=True)
+
+    # Stack the other attributes. You might need to convert some of them to tensors if they aren't already.
+    sample_rates = torch.stack(sample_rates)
+    speaker_ids = torch.stack(speaker_ids)
+    chapter_ids = torch.stack(chapter_ids)
+    utterance_ids = torch.stack(utterance_ids)
+
+    return waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids
+
+
 ############ Control Center and Hyperparameter ###############
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
 print(run_name)
@@ -116,15 +136,11 @@ def main():
     logger.info('===> loading train, validation and eval dataset')
     training_set = LIBRISPEECH(args.train_raw, url='train-clean-100', download=True)
     validation_set = LIBRISPEECH(args.validation_raw, url='dev-clean', download=True)
-    train_loader = data.DataLoader(training_set,
-                                   batch_size=args.batch_size,
-                                   shuffle=True,
-                                   **params)
 
-    validation_loader = data.DataLoader(validation_set,
-                                        batch_size=args.batch_size,
-                                        shuffle=False,
-                                        **params)
+    # Then, in your DataLoader, specify the collate function:
+    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
+    validation_loader = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False,
+                                        collate_fn=collate_fn)
 
     # nanxin optimizer
     optimizer = ScheduledOptim(
