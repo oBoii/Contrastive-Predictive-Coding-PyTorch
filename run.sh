@@ -4,9 +4,9 @@ stage="$1" # parse first argument
 if [ $stage -eq 0 ]; then
     # call main.py; CPC train on LibriSpeech
     CUDA_VISIBLE_DEVICES=`free-gpu` python main.py \
-	--train-raw LibriSpeech/train-Librispeech.h5 \
-	--validation-raw LibriSpeech/validation-Librispeech.h5 \
-	--eval-raw LibriSpeech/eval-Librispeech.h5 \
+	--train-raw LibriSpeech/ \
+	--validation-raw LibriSpeech/ \
+	--eval-raw LibriSpeech/ \
 	--train-list LibriSpeech/list/train.txt \
         --validation-list LibriSpeech/list/validation.txt \
         --eval-list LibriSpeech/list/eval.txt \
