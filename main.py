@@ -51,32 +51,6 @@ class LibriDataset(LIBRISPEECH):
 # return self.h5f[utt_id][index:index + self.audio_window]  # return the audio window
 
 
-def collate_fn(batch):
-    # A batch is a list of tuples of (waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id)
-    # Unzip the batch into separate lists
-    waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids = zip(*batch)
-
-    # Randomly select a window within each waveform
-    audio_window = 20480  # Set this to the desired window size
-    # waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for
-    #              wf in waveforms]
-    # waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item(): audio_window] if wf.size(
-    #     0) > audio_window else wf for wf in waveforms]
-    #
-    # # Find the length of the longest waveform
-    # max_length = max(wf.size(0) for wf in waveforms)
-    #
-    # # Pad all waveforms to the length of the longest waveform
-    # waveforms = [torch.nn.functional.pad(wf, (0, max_length - wf.size(0))) for wf in waveforms]
-    #
-    # # Stack the waveforms and other attributes
-    # waveforms = torch.stack(waveforms)
-    # sample_rates = torch.stack(sample_rates)
-    # speaker_ids = torch.stack(speaker_ids)
-    # chapter_ids = torch.stack(chapter_ids)
-    # utterance_ids = torch.stack(utterance_ids)
-
-    return waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids
 
 
 ############ Control Center and Hyperparameter ###############
@@ -173,9 +147,8 @@ def main():
     validation_set = LibriDataset(args.validation_raw, url='dev-clean', download=True)
 
     # Then, in your DataLoader, specify the collate function:
-    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
-    validation_loader = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False,
-                                        collate_fn=collate_fn)
+    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True)
+    validation_loader = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False)
 
     # nanxin optimizer
     optimizer = ScheduledOptim(
