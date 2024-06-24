@@ -37,17 +37,20 @@ def collate_fn(batch):
     waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for wf in waveforms]
     waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item() : audio_window] if wf.size(0) > audio_window else wf for wf in waveforms]
 
-    # Pad the waveforms and stack them
-    waveforms = pad_sequence(waveforms, batch_first=True)
+    # Find the length of the longest waveform
+    max_length = max(wf.size(0) for wf in waveforms)
 
-    # Stack the other attributes. You might need to convert some of them to tensors if they aren't already.
+    # Pad all waveforms to the length of the longest waveform
+    waveforms = [torch.nn.functional.pad(wf, (0, max_length - wf.size(0))) for wf in waveforms]
+
+    # Stack the waveforms and other attributes
+    waveforms = torch.stack(waveforms)
     sample_rates = torch.stack(sample_rates)
     speaker_ids = torch.stack(speaker_ids)
     chapter_ids = torch.stack(chapter_ids)
     utterance_ids = torch.stack(utterance_ids)
 
     return waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids
-
 
 ############ Control Center and Hyperparameter ###############
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
