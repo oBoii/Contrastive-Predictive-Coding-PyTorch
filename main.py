@@ -38,7 +38,7 @@ class LibriDataset(LIBRISPEECH):
 
         # If waveform is shorter than target_utt_len, pad it with zeros
         if waveform.size(0) < target_utt_len:
-            padding = torch.zeros(target_utt_len - waveform.size(0))
+            padding = torch.zeros(target_utt_len - waveform.size(0)).unsqueeze(0)  # Add an extra dimension
             waveform = torch.cat((waveform, padding))
 
         # If waveform is longer than target_utt_len, truncate it
