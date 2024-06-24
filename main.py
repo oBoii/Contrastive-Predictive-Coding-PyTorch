@@ -22,7 +22,7 @@ import torch.optim as optim
 
 ## Custrom Imports
 from src.logger_v1 import setup_logs
-from src.data_reader.dataset import RawDataset, ReverseRawDataset, RawXXreverseDataset
+# from src.data_reader.dataset import RawDataset, ReverseRawDataset, RawXXreverseDataset
 from src.training_v1 import train, trainXXreverse, snapshot
 from src.validation_v1 import validation, validationXXreverse
 from src.model.model import CDCK2, CDCK5, CDCK6
@@ -107,11 +107,7 @@ def main():
 
     logger.info('===> loading train, validation and eval dataset')
     training_set   = RawDataset(args.train_raw, args.train_list, args.audio_window)
-    #training_set   = ReverseRawDataset(args.train_raw, args.train_list, args.audio_window)
-    #training_set   = RawXXreverseDataset(args.train_raw, args.train_list, args.audio_window)
     validation_set = RawDataset(args.validation_raw, args.validation_list, args.audio_window)
-    #validation_set = ReverseRawDataset(args.validation_raw, args.validation_list, args.audio_window)
-    #validation_set = RawXXreverseDataset(args.validation_raw, args.validation_list, args.audio_window)
     train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True, **params) # set shuffle to True
     validation_loader = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, **params) # set shuffle to False
     # nanxin optimizer  
