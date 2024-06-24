@@ -38,8 +38,10 @@ class LibriDataset(LIBRISPEECH):
 
         # If waveform is shorter than target_utt_len, pad it with zeros
         if waveform.size(0) < target_utt_len:
-            padding = torch.zeros(target_utt_len - waveform.size(0)).unsqueeze(0)  # Add an extra dimension
-            waveform = torch.cat((waveform, padding))
+            padding_size = list(waveform.size())
+            padding_size[0] = target_utt_len - waveform.size(0)
+            padding = torch.zeros(padding_size).to(waveform.device)  # Create padding tensor of the correct size
+            waveform = torch.cat((waveform, padding), dim=0)
 
         # If waveform is longer than target_utt_len, truncate it
         elif waveform.size(0) > target_utt_len:
@@ -53,8 +55,6 @@ class LibriDataset(LIBRISPEECH):
 # index = np.random.randint(utt_len - self.audio_window + 1)  # get the index to read part of the utterance into memory
 #
 # return self.h5f[utt_id][index:index + self.audio_window]  # return the audio window
-
-
 
 
 ############ Control Center and Hyperparameter ###############
