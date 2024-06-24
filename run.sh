@@ -1,7 +1,9 @@
 #!/bin/bash
-stage="$1" # parse first argument 
+stage="$1" # parse first argument
 
 if [ $stage -eq 0 ]; then
+# make directories
+    mkdir -p LibriSpeech/
     # call main.py; CPC train on LibriSpeech
     CUDA_VISIBLE_DEVICES=`free-gpu` python main.py \
 	--train-raw LibriSpeech/ \

@@ -29,11 +29,11 @@ def trainXXreverse(args, model, device, train_loader, optimizer, epoch, batch_si
 def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch, batch_size, frame_window):
     cdc_model.eval()  # not training cdc model
     spk_model.train()
-    for batch_idx, [data, target] in enumerate(train_loader):
-        data = data.float().unsqueeze(1).to(device)  # add channel dimension
-        target = target.to(device)
-        hidden = cdc_model.init_hidden(len(data))
-        output, hidden = cdc_model.predict(data, hidden)
+    for batch_idx, (waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id) in enumerate(train_loader):
+        waveform = waveform.float().unsqueeze(1).to(device)  # add channel dimension
+        target = speaker_id.to(device)  # assuming speaker_id is the target
+        hidden = cdc_model.init_hidden(len(waveform))
+        output, hidden = cdc_model.predict(waveform, hidden)
         data = output.contiguous().view((-1, 256))
         target = target.view((-1, 1))
         shuffle_indexing = torch.randperm(data.shape[0])  # shuffle frames
