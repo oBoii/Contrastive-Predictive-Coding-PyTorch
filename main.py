@@ -27,6 +27,30 @@ from src.validation_v1 import validation
 from torch.nn.utils.rnn import pad_sequence
 
 
+class LibriDataset(LIBRISPEECH):
+    def __init__(self, *args, **kwargs):
+        super(LibriDataset, self).__init__(*args, **kwargs)
+
+    def __getitem__(self, index):
+        target_utt_len = 20480
+        waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id = super(LibriDataset, self).__getitem__(
+            index)
+        # set length
+        if waveform.size(0) < target_utt_len:
+            waveform = torch.nn.functional.pad(waveform, (0, target_utt_len - waveform.size(0)))
+        elif waveform.size(0) > target_utt_len:
+            waveform = waveform[:target_utt_len]
+
+        return waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id
+
+
+# utt_id = self.utts[index]  # get the utterance id
+# utt_len = self.h5f[utt_id].shape[0]  # get the number of data points in the utterance
+# index = np.random.randint(utt_len - self.audio_window + 1)  # get the index to read part of the utterance into memory
+#
+# return self.h5f[utt_id][index:index + self.audio_window]  # return the audio window
+
+
 def collate_fn(batch):
     # A batch is a list of tuples of (waveform, sample_rate, transcript, speaker_id, chapter_id, utterance_id)
     # Unzip the batch into separate lists
@@ -34,23 +58,23 @@ def collate_fn(batch):
 
     # Randomly select a window within each waveform
     audio_window = 20480  # Set this to the desired window size
-    waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for
-                 wf in waveforms]
-    waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item(): audio_window] if wf.size(
-        0) > audio_window else wf for wf in waveforms]
-
-    # Find the length of the longest waveform
-    max_length = max(wf.size(0) for wf in waveforms)
-
-    # Pad all waveforms to the length of the longest waveform
-    waveforms = [torch.nn.functional.pad(wf, (0, max_length - wf.size(0))) for wf in waveforms]
-
-    # Stack the waveforms and other attributes
-    waveforms = torch.stack(waveforms)
-    sample_rates = torch.stack(sample_rates)
-    speaker_ids = torch.stack(speaker_ids)
-    chapter_ids = torch.stack(chapter_ids)
-    utterance_ids = torch.stack(utterance_ids)
+    # waveforms = [wf if wf.size(0) >= audio_window else torch.nn.functional.pad(wf, (0, audio_window - wf.size(0))) for
+    #              wf in waveforms]
+    # waveforms = [wf[torch.randint(0, wf.size(0) - audio_window + 1, (1,)).item(): audio_window] if wf.size(
+    #     0) > audio_window else wf for wf in waveforms]
+    #
+    # # Find the length of the longest waveform
+    # max_length = max(wf.size(0) for wf in waveforms)
+    #
+    # # Pad all waveforms to the length of the longest waveform
+    # waveforms = [torch.nn.functional.pad(wf, (0, max_length - wf.size(0))) for wf in waveforms]
+    #
+    # # Stack the waveforms and other attributes
+    # waveforms = torch.stack(waveforms)
+    # sample_rates = torch.stack(sample_rates)
+    # speaker_ids = torch.stack(speaker_ids)
+    # chapter_ids = torch.stack(chapter_ids)
+    # utterance_ids = torch.stack(utterance_ids)
 
     return waveforms, sample_rates, transcripts, speaker_ids, chapter_ids, utterance_ids
 
@@ -145,8 +169,8 @@ def main():
     #                                     **params)  # set shuffle to False
 
     logger.info('===> loading train, validation and eval dataset')
-    training_set = LIBRISPEECH(args.train_raw, url='train-clean-100', download=True)
-    validation_set = LIBRISPEECH(args.validation_raw, url='dev-clean', download=True)
+    training_set = LibriDataset(args.train_raw, url='train-clean-100', download=True)
+    validation_set = LibriDataset(args.validation_raw, url='dev-clean', download=True)
 
     # Then, in your DataLoader, specify the collate function:
     train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn)
